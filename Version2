@@ -1,1 +1,135 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include<stdlib.h>
 
+// 【升级】结构体：增加 type 类型字段，实现按类型筛选
+struct Node{
+    char data[100];    // 内容
+    char type[20];     // 类型：车队 / 车手 / 赛事 / 其他
+    struct Node *next;
+};
+
+// 转小写（你原来的函数，保留）
+void toLower(char *s){
+    int i;
+    for(i=0; s[i]!='\0'; i++){
+        s[i] = tolower(s[i]);
+    }
+}
+
+int main(){
+    // 【升级】每条信息 增加 类型标记
+    // 格式：内容，类型
+    char f1List[][100] = {
+        "F1 红牛车队",     "车队",
+        "F1 法拉利车队",   "车队",
+        "F1 梅赛德斯车队", "车队",
+        "F1 赛车速度",     "赛事",
+        "F1 维斯塔潘",     "车手",
+        "F1 汉密尔顿",     "车手",
+        "F1 勒克莱尔",     "车手",
+        "F1 赛道记录",     "赛事"
+    };
+
+    // 总条数 = 8 条（固定）
+    int n = 8;
+    char key[100];
+    char keyLower[100];
+
+    // 第一次搜索结果链表（你原来的）
+    struct Node *head = NULL;
+    struct Node *tail = NULL;
+
+    // 【新增】第二次筛选结果链表（按类型筛选）
+    struct Node *filterHead = NULL;
+    struct Node *filterTail = NULL;
+
+    printf("请输入 F1 搜索关键词：");
+    gets(key);          // 你原来的输入（保留）
+    strcpy(keyLower, key);
+    toLower(keyLower);
+
+    int i;
+    // ======================
+    // 第一步：关键词搜索（你原来的逻辑）
+    // ======================
+    for(i=0; i<n; i++){
+        char temp[100];
+        strcpy(temp, f1List[i*2]);  // 取内容
+        toLower(temp);
+
+        if(strstr(temp, keyLower) != NULL){
+            // 创建节点
+            struct Node *newNode = (struct Node*)malloc(sizeof(struct Node));
+            strcpy(newNode->data, f1List[i*2]);
+            strcpy(newNode->type, f1List[i*2 + 1]); // 绑定类型
+            newNode->next = NULL;
+
+            if(head == NULL){
+                head = newNode;
+                tail = newNode;
+            }else{
+                tail->next = newNode;
+                tail = newNode;
+            }
+        }
+    }
+
+    // 输出第一次搜索结果
+    printf("\n===== 搜索结果 =====\n");
+    struct Node *p = head;
+    if(p == NULL){
+        printf("未找到相关 F1 信息\n");
+        return 0;
+    }else{
+        while(p != NULL){
+            printf("[%s] %s\n", p->type, p->data);
+            p = p->next;
+        }
+    }
+
+    // ======================
+    // 【新增】第二步：按类型筛选（F2 新功能）
+    // ======================
+    printf("\n===== F2 结果筛选：按类型筛选 =====\n");
+    printf("可选类型：车队 / 车手 / 赛事\n");
+    printf("请输入要筛选的类型：");
+    char filterType[20];
+    gets(filterType);
+
+    // 遍历第一次搜索链表，筛选符合类型的节点 → 新建筛选链表
+    p = head;
+    while(p != NULL){
+        if(strcmp(p->type, filterType) == 0){
+            // 新建筛选节点
+            struct Node *fNode = (struct Node*)malloc(sizeof(struct Node));
+            strcpy(fNode->data, p->data);
+            strcpy(fNode->type, p->type);
+            fNode->next = NULL;
+
+            if(filterHead == NULL){
+                filterHead = fNode;
+                filterTail = fNode;
+            }else{
+                filterTail->next = fNode;
+                filterTail = fNode;
+            }
+        }
+        p = p->next;
+    }
+
+    // 输出筛选结果
+    printf("\n===== 筛选结果 =====\n");
+    struct Node *f = filterHead;
+    if(f == NULL){
+        printf("该类型下无结果\n");
+    }else{
+        while(f != NULL){
+            printf("[%s] %s\n", f->type, f->data);
+            f = f->next;
+        }
+    }
+
+    return 0;
+}
