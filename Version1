@@ -1,1 +1,50 @@
-
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include<stdlib.h>
+struct Node{
+char data[100];
+struct Node *next;};
+void toLower(char *s){
+int i;
+for(i=0; s[i]!='\0'; i++){
+s[i] = tolower(s[i]);}}
+int main(){
+char f1List[][100] = {
+"F1 红牛车队",
+"F1 法拉利车队",
+"F1 梅赛德斯车队",
+"F1 赛车速度",
+"F1 维斯塔潘",
+"F1 汉密尔顿",
+"F1 勒克莱尔",
+"F1 赛道记录"};
+int n = sizeof(f1List)/sizeof(f1List[0]);
+char key[100];
+char keyLower[100];
+struct Node *head = NULL;
+struct Node *tail = NULL;
+printf("请输入 F1 搜索关键词：");
+gets(key);strcpy(keyLower, key);
+toLower(keyLower);
+int i;
+for(i=0; i<n; i++){
+char temp[100];
+strcpy(temp, f1List[i]);
+toLower(temp);
+if(strstr(temp, keyLower) != NULL){
+struct Node *newNode = (struct Node*)malloc(sizeof(struct Node));
+strcpy(newNode->data, f1List[i]);
+newNode->next = NULL;
+if(head == NULL){head = newNode;tail = newNode;}else{tail->next = newNode;tail = newNode;
+}
+}
+}
+printf("\n===== 搜索结果 =====\n");
+struct Node *p = head;
+if(p == NULL){
+printf("未找到相关 F1 信息\n");}else{while(p != NULL){
+printf("%s\n", p->data);
+p= p->next;
+}}
+return 0;}
