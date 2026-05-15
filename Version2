@@ -9,8 +9,6 @@ struct Node{
     char type[20];     // 类型：车队 / 车手 / 赛事 / 其他
     struct Node *next;
 };
-
-// 转小写（你原来的函数，保留）
 void toLower(char *s){
     int i;
     for(i=0; s[i]!='\0'; i++){
