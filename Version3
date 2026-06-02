@@ -136,3 +136,4 @@ void filterByType(struct Node *srcHead, char *filterStr, struct Node **fHead, st
         p = p->next;
     }
 }
+
