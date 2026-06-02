@@ -1,1 +1,61 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdlib.h>
 
+// 定义链表结点结构体：存储数据内容、分类、后继指针
+struct Node {
+    char data[100];    // 存储F1信息字符串
+    char type[20];     // 存储信息分类：车队/车手/赛事
+    struct Node *next; // 指向下一个结点的指针
+};
+
+/*
+函数功能：将传入的字符串全部转为小写，消除大小写差异，方便模糊匹配
+参数：char *s：待转换的字符数组（字符串）
+*/
+void toLower(char *s)
+{
+    int i;
+    // 循环遍历直到字符串结束符'\0'
+    for (i = 0; s[i] != '\0'; i++)
+    {
+        s[i] = tolower(s[i]);
+    }
+}
+
+/*
+函数功能：遍历链表并打印链表所有内容，统一封装输出逻辑
+参数：head：待打印链表头指针
+*/
+void printList(struct Node *head)
+{
+    struct Node *p = head;
+    if (p == NULL)
+    {
+        printf("无数据\n");
+        return;
+    }
+    while (p != NULL)
+    {
+        printf("[%s] %s\n", p->type, p->data);
+        p = p->next;
+    }
+}
+
+/*
+函数功能：释放整条链表所有堆内存，防止内存泄漏
+参数：head：需要释放的链表头指针
+*/
+void freeList(struct Node **head)
+{
+    struct Node *p = *head;
+    struct Node *del;
+    while (p != NULL)
+    {
+        del = p;
+        p = p->next;
+        free(del);
+    }
+    *head = NULL; // 头指针置空，避免野指针
+}
