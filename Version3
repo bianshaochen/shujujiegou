@@ -135,5 +135,104 @@ void filterByType(struct Node *srcHead, char *filterStr, struct Node **fHead, st
         }
         p = p->next;
     }
+}#define MAX_HIST 30    // 搜索历史最大存储条数
+/*
+F3实现原理：二维字符数组historyStr[条数][单条关键词长度]，数组+串操作存储历史
+count：有效历史记录计数器，标记数组下标
+*/
+int main()
+{
+    // 原始F1数据源：成对存储【内容，分类】
+    char f1List[][100] = {
+        "F1 红牛车队",     "车队",
+        "F1 法拉利车队",   "车队",
+        "F1 梅赛德斯车队", "车队",
+        "F1 赛车速度",     "赛事",
+        "F1 维斯塔潘",     "车手",
+        "F1 汉密尔顿",     "车手",
+        "F1 勒克莱尔",     "车手",
+        "F1 赛道记录",     "赛事"
+    };
+    int n = 8;          // 一共8组数据
+
+    char historyStr[MAX_HIST][100]; // F3：二维数组存搜索关键词
+    int count = 0;                  // 历史记录个数
+    char key[100], keyLower[100];   // 原关键词、小写关键词
+    char filterType[20];            // 筛选输入的分类
+
+    // 两个链表：F1搜索结果链表、F2筛选结果链表
+    struct Node *head = NULL, *tail = NULL;
+    struct Node *filterHead = NULL, *filterTail = NULL;
+
+    printf("========== F1信息检索系统 ==========\n");
+    printf("支持模糊关键词搜索，忽略大小写\n");
+    printf("请输入 F1 搜索关键词：");
+    gets(key);
+
+    // F3功能：本次搜索关键词存入历史二维数组（串拷贝strcpy）
+    if (count < MAX_HIST)
+    {
+        strcpy(historyStr[count], key);
+        count++;
+    }
+
+    // 关键词转小写，用于统一匹配
+    strcpy(keyLower, key);
+    toLower(keyLower);
+
+    // 调用F1搜索函数，生成一级链表
+    searchByKey(f1List, n, keyLower, &head, &tail);
+
+    // 输出F1搜索结果
+    printf("\n===== F1关键词搜索结果 =====\n");
+    if (head == NULL)
+    {
+        printf("未找到相关 F1 信息\n");
+    }
+    else
+    {
+        printList(head);
+    }
+
+    // F2分类筛选
+    printf("\n===== F2 按类型筛选 =====\n");
+    printf("可选筛选类型：车队 / 车手 / 赛事\n");
+    printf("请输入要筛选的类型：");
+    gets(filterType);
+
+    // 调用筛选函数生成新链表
+    filterByType(head, filterType, &filterHead, &filterTail);
+
+    // 打印筛选结果
+    printf("\n===== F2筛选结果 =====\n");
+    if (filterHead == NULL)
+    {
+        printf("该类型下无匹配数据\n");
+    }
+    else
+    {
+        printList(filterHead);
+    }
+
+    // F3：遍历二维数组，输出全部搜索历史记录
+    printf("\n======== F3 搜索历史记录（数组+串实现）========\n");
+    if (count == 0)
+    {
+        printf("暂无任何搜索记录\n");
+    }
+    else
+    {
+        for (int i = 0; i < count; i++)
+        {
+            printf("第%d次搜索关键词：%s\n", i + 1, historyStr[i]);
+        }
+    }
+
+    // 程序结束，释放两块链表内存
+    freeList(&head);
+    freeList(&filterHead);
+    printf("\n程序结束，已全部释放动态内存\n");
+
+    return 0;
 }
 
