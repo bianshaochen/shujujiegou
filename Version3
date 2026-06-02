@@ -59,3 +59,46 @@ void freeList(struct Node **head)
     }
     *head = NULL; // 头指针置空，避免野指针
 }
+/*
+函数功能：遍历原始数据数组，根据关键词模糊查找，匹配项尾插生成结果链表
+形参：
+f1List[]：原始信息二维字符串数组
+n：原始数据总组数
+keyLow：已经转为小写的搜索关键词
+hHead、hTail：一级结果链表的头、尾指针（二级指针修改实参）
+*/
+void searchByKey(char f1List[][100], int n, char *keyLow, struct Node **hHead, struct Node **hTail)
+{
+    int i;
+    char temp[100]; // 临时存放单条信息，用于小写转换
+
+    for (i = 0; i < n; i++)
+    {
+        // 取出数组内的信息内容
+        strcpy(temp, f1List[i * 2]);
+        // 内容全部小写
+        toLower(temp);
+
+        // strstr：在temp中查找子串keyLow，找到代表匹配成功
+        if (strstr(temp, keyLow) != NULL)
+        {
+            // 动态开辟新结点内存
+            struct Node *newNode = (struct Node *)malloc(sizeof(struct Node));
+            strcpy(newNode->data, f1List[i * 2]);
+            strcpy(newNode->type, f1List[i * 2 + 1]);
+            newNode->next = NULL;
+
+            // 尾插法：空链表则头尾都指向新结点
+            if (*hHead == NULL)
+            {
+                *hHead = newNode;
+                *hTail = newNode;
+            }
+            else
+            {
+                (*hTail)->next = newNode;
+                *hTail = newNode;
+            }
+        }
+    }
+}
