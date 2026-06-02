@@ -102,3 +102,37 @@ void searchByKey(char f1List[][100], int n, char *keyLow, struct Node **hHead, s
         }
     }
 }
+/*
+函数功能：在F1搜索结果链表基础上，按指定类别筛选，新建筛选链表
+srcHead：原搜索结果链表头
+filterStr：需要筛选的分类名称
+fHead、fTail：筛选后新链表头尾指针
+*/
+void filterByType(struct Node *srcHead, char *filterStr, struct Node **fHead, struct Node **fTail)
+{
+    struct Node *p = srcHead;
+    while (p != NULL)
+    {
+        // strcmp：字符串完全相等返回0，匹配分类
+        if (strcmp(p->type, filterStr) == 0)
+        {
+            // 新建筛选结点，复制原结点数据
+            struct Node *fNode = (struct Node *)malloc(sizeof(struct Node));
+            strcpy(fNode->data, p->data);
+            strcpy(fNode->type, p->type);
+            fNode->next = NULL;
+
+            if (*fHead == NULL)
+            {
+                *fHead = fNode;
+                *fTail = fNode;
+            }
+            else
+            {
+                (*fTail)->next = fNode;
+                *fTail = fNode;
+            }
+        }
+        p = p->next;
+    }
+}
