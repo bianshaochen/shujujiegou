@@ -60,3 +60,50 @@ void freeLink(struct Node *h)
         free(del);
     }
 }
+    //F2按类型筛选
+    printf("\n===== F2 结果筛选：按类型筛选 =====\n");
+    printf("可选类型：车队 / 车手 / 赛事\n");
+    printf("请输入要筛选的类型：");
+    char filterType[20];
+    gets(filterType);
+
+    p = head;
+    while(p != NULL){
+        if(strcmp(p->type, filterType) == 0){
+            struct Node *fNode = (struct Node*)malloc(sizeof(struct Node));
+            strcpy(fNode->data, p->data);
+            strcpy(fNode->type, p->type);
+            fNode->next = NULL;
+
+            if(filterHead == NULL){
+                filterHead = fNode;
+                filterTail = fNode;
+            }else{
+                filterTail->next = fNode;
+                filterTail = fNode;
+            }
+        }
+        p = p->next;
+    }
+
+    //输出筛选结果
+    printf("\n===== F2筛选结果 =====\n");
+    struct Node *f = filterHead;
+    if(f == NULL){
+        printf("该类型下无结果\n");
+    }else{
+        while(f != NULL){
+            printf("[%s] %s\n", f->type, f->data);
+            f = f->next;
+        }
+    }
+
+    //=====F3：查看搜索历史=====
+    printf("\n======== F3 搜索历史记录（数组+串实现）========\n");
+    if(count == 0){
+        printf("暂无搜索历史串\n");
+    }else{
+        for(int i = 0; i < count; i++){
+            printf("第%d次搜索：%s\n", i+1, historyStr[i]);
+        }
+    }
