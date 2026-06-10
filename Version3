@@ -1,212 +1,242 @@
 #include <stdio.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdlib.h>
-
-struct Node {
-    char data[100];   
-    char type[20];     
-    struct Node *next; 
-};
-
-
-void toLower(char *s)
-{
-    int i;
-   
-    for (i = 0; s[i] != '\0'; i++)
-    {
-        s[i] = tolower(s[i]);
-    }
-}
-
-
-void printList(struct Node *head)
-{
-    struct Node *p = head;
-    if (p == NULL)
-    {
-        printf("无数据\n");
-        return;
-    }
-    while (p != NULL)
-    {
-        printf("[%s] %s\n", p->type, p->data);
-        p = p->next;
-    }
-}
-
-
-void freeList(struct Node **head)
-{
-    struct Node *p = *head;
-    struct Node *del;
-    while (p != NULL)
-    {
-        del = p;
-        p = p->next;
-        free(del);
-    }
-    *head = NULL; 
-}
-
-void searchByKey(char f1List[][100], int n, char *keyLow, struct Node **hHead, struct Node **hTail)
-{
-    int i;
-    char temp[100];
-    for (i = 0; i < n; i++)
-    {
-        
-        strcpy(temp, f1List[i * 2]);
-        
-        toLower(temp);
-
-    
-        if (strstr(temp, keyLow) != NULL)
-        {
-           
-            struct Node *newNode = (struct Node *)malloc(sizeof(struct Node));
-            strcpy(newNode->data, f1List[i * 2]);
-            strcpy(newNode->type, f1List[i * 2 + 1]);
-            newNode->next = NULL;
-
-            
-            if (*hHead == NULL)
-            {
-                *hHead = newNode;
-                *hTail = newNode;
-            }
-            else
-            {
-                (*hTail)->next = newNode;
-                *hTail = newNode;
-            }
-        }
-    }
-}
-
-void filterByType(struct Node *srcHead, char *filterStr, struct Node **fHead, struct Node **fTail)
-{
-    struct Node *p = srcHead;
-    while (p != NULL)
-    {
-        
-        if (strcmp(p->type, filterStr) == 0)
-        {
-            
-            struct Node *fNode = (struct Node *)malloc(sizeof(struct Node));
-            strcpy(fNode->data, p->data);
-            strcpy(fNode->type, p->type);
-            fNode->next = NULL;
-
-            if (*fHead == NULL)
-            {
-                *fHead = fNode;
-                *fTail = fNode;
-            }
-            else
-            {
-                (*fTail)->next = fNode;
-                *fTail = fNode;
-            }
-        }
-        p = p->next;
-    }
-}
-#define MAX_HIST 30   
-
-int main()
-{
-   
-    char f1List[][100] = {
-        "F1 红牛车队",     "车队",
-        "F1 法拉利车队",   "车队",
-        "F1 梅赛德斯车队", "车队",
-        "F1 赛车速度",     "赛事",
-        "F1 维斯塔潘",     "车手",
-        "F1 汉密尔顿",     "车手",
-        "F1 勒克莱尔",     "车手",
-        "F1 赛道记录",     "赛事"
-    };
-    int n = 8;         
-
-    char historyStr[MAX_HIST][100]; 
-    int count = 0;                 
-    char key[100], keyLower[100];
-    char filterType[20];           
-
-   
-    struct Node *head = NULL, *tail = NULL;
-    struct Node *filterHead = NULL, *filterTail = NULL;
-
-    printf("========== F1信息检索系统 ==========\n");
-    printf("支持模糊关键词搜索，忽略大小写\n");
-    printf("请输入 F1 搜索关键词：");
-    gets(key);
-
-   
-    if (count < MAX_HIST)
-    {
-        strcpy(historyStr[count], key);
-        count++;
-    }
-
-   
-    strcpy(keyLower, key);
-    toLower(keyLower);
-
-   
-    searchByKey(f1List, n, keyLower, &head, &tail);
-
-   
-    printf("\n===== F1关键词搜索结果 =====\n");
-    if (head == NULL)
-    {
-        printf("未找到相关 F1 信息\n");
-    }
-    else
-    {
-        printList(head);
-    }
-
-   
-    printf("\n===== F2 按类型筛选 =====\n");
-    printf("可选筛选类型：车队 / 车手 / 赛事\n");
-    printf("请输入要筛选的类型：");
-    gets(filterType);
-
-   
-    filterByType(head, filterType, &filterHead, &filterTail);
-
-   
-    printf("\n===== F2筛选结果 =====\n");
-    if (filterHead == NULL)
-    {
-        printf("该类型下无匹配数据\n");
-    }
-    else
-    {
-        printList(filterHead);
-    }
-
-   
-    printf("\n======== F3 搜索历史记录（数组+串实现）========\n");
-    if (count == 0)
-    {
-        printf("暂无任何搜索记录\n");
-    }
-    else
-    {
-        for (int i = 0; i < count; i++)
-        {
-            printf("第%d次搜索关键词：%s\n", i + 1, historyStr[i]);
-        }
-    }
-
-   
-    freeList(&head);
-    freeList(&filterHead);
-    printf("\n程序结束，已全部释放动态内存\n");
-
-    return 0;
-}
+ #include <string.h>
+ #include <ctype.h>
+ #include <stdlib.h>
+ struct Node {
+     char data[100];   
+     char type[20];     
+     struct Node *next; 
+ };
+ int BF(char *s, char *t)
+ {
+     int i = 0, j = 0;
+     int lenS = strlen(s);
+     int lenT = strlen(t);
+     while (i < lenS && j < lenT)
+     {
+         if (s[i] == t[j])
+         {
+             i++;
+             j++;
+         }
+         else
+         {
+             i = i - j + 1;
+             j = 0;
+         }
+     }
+     if (j == lenT)
+         return i - j;
+     else
+         return -1;
+ }
+ void getNext(char *t, int next[])
+ {
+     int i = 0, j = -1;
+     int lenT = strlen(t);
+     next[0] = -1;
+     while (i < lenT - 1)
+     {
+         if (j == -1 || t[i] == t[j])
+         {
+             i++;
+             j++;
+             next[i] = j;
+         }
+         else
+         {
+             j = next[j];
+         }
+     }
+ }
+ int KMP(char *s, char *t)
+ {
+     int i = 0, j = 0;
+     int lenS = strlen(s);
+     int lenT = strlen(t);
+     int *next = (int *)malloc(sizeof(int) * lenT);
+     getNext(t, next);
+     while (i < lenS && j < lenT)
+     {
+         if (j == -1 || s[i] == t[j])
+         {
+             i++;
+             j++;
+         }
+         else
+         {
+             j = next[j];
+         }
+     }
+     free(next);
+     if (j == lenT)
+         return i - j;
+     else
+         return -1;
+ }
+ void toLower(char *s)
+ {
+     int i;
+     for (i = 0; s[i] != '\0'; i++)
+     {
+         s[i] = tolower(s[i]);
+     }
+ }
+ void printList(struct Node *head)
+ {
+     struct Node *p = head;
+     if (p == NULL)
+     {
+         printf("无数据\n");
+         return;
+     }
+     while (p != NULL)
+     {
+         printf("[%s] %s\n", p->type, p->data);
+         p = p->next;
+     }
+ }
+ void freeList(struct Node **head)
+ {
+     struct Node *p = *head;
+     struct Node *del;
+     while (p != NULL)
+     {
+         del = p;
+         p = p->next;
+         free(del);
+     }
+     *head = NULL; 
+ }
+ void searchByKey(char f1List[][100], int n, char *keyLow, struct Node **hHead, struct Node **hTail)
+ {
+     int i;
+     char temp[100];
+     for (i = 0; i < n; i++)
+     {
+         strcpy(temp, f1List[i * 2]);
+         toLower(temp);
+         if (BF(temp, keyLow) != -1)
+         {
+             struct Node *newNode = (struct Node *)malloc(sizeof(struct Node));
+             strcpy(newNode->data, f1List[i * 2]);
+             strcpy(newNode->type, f1List[i * 2 + 1]);
+             newNode->next = NULL;
+             if (*hHead == NULL)
+             {
+                 *hHead = newNode;
+                 *hTail = newNode;
+             }
+             else
+             {
+                 (*hTail)->next = newNode;
+                 *hTail = newNode;
+             }
+         }
+     }
+ }
+ void filterByType(struct Node *srcHead, char *filterStr, struct Node **fHead, struct Node **fTail)
+ {
+     struct Node *p = srcHead;
+     while (p != NULL)
+     {
+         if (strcmp(p->type, filterStr) == 0)
+         {
+             struct Node *fNode = (struct Node *)malloc(sizeof(struct Node));
+             strcpy(fNode->data, p->data);
+             strcpy(fNode->type, p->type);
+             fNode->next = NULL;
+             if (*fHead == NULL)
+             {
+                 *fHead = fNode;
+                 *fTail = fNode;
+             }
+             else
+             {
+                 (*fTail)->next = fNode;
+                 *fTail = fNode;
+             }
+         }
+         p = p->next;
+     }
+ }
+ #define MAX_HIST 30   
+ int main()
+ {
+     char f1List[][100] = {
+         "F1 红牛车队",     "车队",
+         "F1 法拉利车队",   "车队",
+         "F1 梅赛德斯车队", "车队",
+         "F1 赛车速度",     "赛事",
+         "F1 维斯塔潘",     "车手",
+         "F1 汉密尔顿",     "车手",
+         "F1 勒克莱尔",     "车手",
+         "F1 赛道记录",     "赛事"
+     };
+     int n = 8;         
+     char historyStr[MAX_HIST][100]; 
+     int count = 0;                 
+     char key[100], keyLower[100];
+     char filterType[20];           
+     struct Node *head = NULL, *tail = NULL;
+     struct Node *filterHead = NULL, *filterTail = NULL;
+     printf("========== F1信息检索系统 ==========\n");
+     printf("支持模糊关键词搜索，忽略大小写\n");
+     printf("请输入 F1 搜索关键词：");
+     gets(key);
+     if (count < MAX_HIST)
+     {
+         strcpy(historyStr[count], key);
+         count++;
+     }
+     strcpy(keyLower, key);
+     toLower(keyLower);
+     searchByKey(f1List, n, keyLower, &head, &tail);
+     printf("\n===== F1关键词搜索结果 =====\n");
+     if (head == NULL)
+     {
+         printf("未找到相关 F1 信息\n");
+     }
+     else
+     {
+         printList(head);
+     }
+     printf("\n===== F2 按类型筛选 =====\n");
+     printf("可选筛选类型：车队 / 车手 / 赛事\n");
+     printf("请输入要筛选的类型：");
+     gets(filterType);
+     filterByType(head, filterType, &filterHead, &filterTail);
+     printf("\n===== F2筛选结果 =====\n");
+     if (filterHead == NULL)
+     {
+         printf("该类型下无匹配数据\n");
+     }
+     else
+     {
+         printList(filterHead);
+     }
+     printf("\n======== F3 搜索历史记录（数组+串实现）========\n");
+     if (count == 0)
+     {
+         printf("暂无任何搜索记录\n");
+     }
+     else
+     {
+         for (int i = 0; i < count; i++)
+         {
+             printf("第%d次搜索关键词：%s\n", i + 1, historyStr[i]);
+         }
+     }
+     printf("\n===== BF与KMP算法测试 =====\n");
+     char testStr[100], testKey[100];
+     strcpy(testStr, "F1 红牛车队 F1 法拉利车队");
+     strcpy(testKey, keyLower);
+     int bfPos = BF(testStr, testKey);
+     int kmpPos = KMP(testStr, testKey);
+     printf("BF算法匹配位置：%d\n", bfPos);
+     printf("KMP算法匹配位置：%d\n", kmpPos);
+     freeList(&head);
+     freeList(&filterHead);
+     printf("\n程序结束，已全部释放动态内存\n");
+     return 0;
+ }
