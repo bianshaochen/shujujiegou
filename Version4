@@ -3,76 +3,6 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-int BF(char *s, char *key)
-{
-    int i = 0, j = 0;
-    int lenS = strlen(s);
-    int lenKey = strlen(key);
-
-    while (i < lenS && j < lenKey)
-    {
-        if (s[i] == key[j])
-        {
-            i++;
-            j++;
-        }
-        else
-        {
-            i = i - j + 1;
-            j = 0;
-        }
-    }
-    if (j == lenKey)
-        return i - j;
-    return -1;
-}
-
-void getNext(char *key, int next[])
-{
-    int len = strlen(key);
-    int j = 0, k = -1;
-    next[0] = -1;
-    while (j < len - 1)
-    {
-        if (k == -1 || key[j] == key[k])
-        {
-            j++;
-            k++;
-            next[j] = k;
-        }
-        else
-        {
-            k = next[k];
-        }
-    }
-}
-
-int KMP(char *s, char *key)
-{
-    int i = 0, j = 0;
-    int lenS = strlen(s);
-    int lenKey = strlen(key);
-    int *next = (int*)malloc(lenKey * sizeof(int));
-    getNext(key, next);
-
-    while (i < lenS && j < lenKey)
-    {
-        if (j == -1 || s[i] == key[j])
-        {
-            i++;
-            j++;
-        }
-        else
-        {
-            j = next[j];
-        }
-    }
-    free(next);
-    if (j == lenKey)
-        return i - j;
-    return -1;
-}
-
 struct Node{
     char data[100];
     char type[20];
@@ -84,8 +14,6 @@ struct Favorite{
     char type[20];
 };
 
-int currentAlgorithm = 0;
-
 void toLower(char *s){
     int i;
     for(i=0; s[i]!='\0'; i++){
@@ -93,30 +21,20 @@ void toLower(char *s){
     }
 }
 
-struct Node* searchByKeyWithAlgorithm(char key[], char f1List[][100], int n, int useKMP)
+struct Node* searchByKey(char key[], char f1List[][100], int n)
 {
     struct Node *head = NULL, *tail = NULL;
     char keyLower[100];
     strcpy(keyLower, key);
     toLower(keyLower);
-    
-    int matchCount = 0;
 
     int i;
     for(i=0; i<n; i++){
         char temp[100];
         strcpy(temp, f1List[i*2]);
         toLower(temp);
-        
-        int found = 0;
-        if(useKMP){
-            found = (KMP(temp, keyLower) != -1);
-        }else{
-            found = (BF(temp, keyLower) != -1);
-        }
-        
-        if(found){
-            matchCount++;
+
+        if(strstr(temp, keyLower) != NULL){
             struct Node *newNode = (struct Node*)malloc(sizeof(struct Node));
             strcpy(newNode->data, f1List[i*2]);
             strcpy(newNode->type, f1List[i*2 + 1]);
@@ -131,19 +49,7 @@ struct Node* searchByKeyWithAlgorithm(char key[], char f1List[][100], int n, int
             }
         }
     }
-    
-    if(useKMP){
-        printf("[使用 KMP 算法] 匹配到 %d 条结果\n", matchCount);
-    }else{
-        printf("[使用 BF 算法] 匹配到 %d 条结果\n", matchCount);
-    }
-    
     return head;
-}
-
-struct Node* searchByKey(char key[], char f1List[][100], int n)
-{
-    return searchByKeyWithAlgorithm(key, f1List, n, currentAlgorithm);
 }
 
 void freeLink(struct Node *h)
@@ -164,10 +70,8 @@ void showMenu(){
     printf("4 - F4 收藏结果\n");
     printf("5 - F5 查看收藏夹\n");
     printf("6 - F6 清除历史\n");
-    printf("7 - F7 切换搜索算法\n");
     printf("0 - 退出系统\n");
     printf("====================================\n");
-    printf("当前算法：%s\n", currentAlgorithm == 0 ? "BF算法" : "KMP算法");
     printf("请选择功能：");
 }
 
@@ -223,9 +127,6 @@ int main(){
     int choice;
     
     printf("欢迎使用 F1 信息管理系统！\n");
-    printf("\n【算法说明】\n");
-    printf("  BF算法：暴力匹配，简单直观，适合小规模数据\n");
-    printf("  KMP算法：利用next数组，匹配效率更高，适合大规模数据\n");
     
     do{
         showMenu();
@@ -251,7 +152,7 @@ int main(){
                     freeLink(currentResult);
                 }
                 
-                currentResult = searchByKeyWithAlgorithm(key, f1List, n, currentAlgorithm);
+                currentResult = searchByKey(key, f1List, n);
                 
                 printf("\n===== F1搜索结果 =====\n");
                 showResult(currentResult);
@@ -334,7 +235,7 @@ int main(){
                         }
                         
                         strcpy(currentKeyword, oldKey);
-                        currentResult = searchByKeyWithAlgorithm(oldKey, f1List, n, currentAlgorithm);
+                        currentResult = searchByKey(oldKey, f1List, n);
                         
                         printf("\n===== 二次检索结果 =====\n");
                         showResult(currentResult);
@@ -423,30 +324,6 @@ int main(){
                 break;
             }
             
-            case 7:
-            {
-                printf("\n===== F7 切换搜索算法 =====\n");
-                printf("当前算法：%s\n", currentAlgorithm == 0 ? "BF算法" : "KMP算法");
-                printf("请选择要切换的算法：\n");
-                printf("1 - BF算法（暴力匹配）\n");
-                printf("2 - KMP算法（高效匹配）\n");
-                printf("请输入选项：");
-                int algoChoice;
-                scanf("%d", &algoChoice);
-                getchar();
-                
-                if(algoChoice == 1){
-                    currentAlgorithm = 0;
-                    printf("已切换到 BF算法\n");
-                }else if(algoChoice == 2){
-                    currentAlgorithm = 1;
-                    printf("已切换到 KMP算法\n");
-                }else{
-                    printf("无效选项，算法未改变\n");
-                }
-                break;
-            }
-            
             case 0:
             {
                 printf("\n感谢使用，再见！\n");
@@ -465,3 +342,4 @@ int main(){
     
     return 0;
 }
+//kmb
