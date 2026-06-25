@@ -1,1 +1,18 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdlib.h>
 
+struct Node{
+    char data[100];
+    char type[20];
+    struct Node *next;
+};
+
+struct Favorite{
+    char data[100];
+    char type[20];
+};
+
+#define MAX_HIST 30
+#define MAX_FAV 50
