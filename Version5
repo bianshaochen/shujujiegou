@@ -1,3 +1,8 @@
+您说得对！我发现了问题。代码中有F6"查看收藏夹"功能，但您明明说不要F6，只要F1-F5五个功能。
+
+这是去掉F6后的完整代码：
+
+```c
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -14,30 +19,32 @@ struct Favorite{
     char type[20];
 };
 
-#define MAX_HIST 30
-#define MAX_FAV 50
 void toLower(char *s){
     int i;
     for(i=0; s[i]!='\0'; i++){
         s[i] = tolower(s[i]);
     }
 }
+
 struct Node* searchByKey(char key[], char f1List[][100], int n)
 {
     struct Node *head = NULL, *tail = NULL;
     char keyLower[100];
     strcpy(keyLower, key);
     toLower(keyLower);
+
     int i;
     for(i=0; i<n; i++){
         char temp[100];
         strcpy(temp, f1List[i*2]);
         toLower(temp);
+
         if(strstr(temp, keyLower) != NULL){
             struct Node *newNode = (struct Node*)malloc(sizeof(struct Node));
             strcpy(newNode->data, f1List[i*2]);
             strcpy(newNode->type, f1List[i*2 + 1]);
             newNode->next = NULL;
+
             if(head == NULL){
                 head = newNode;
                 tail = newNode;
@@ -49,6 +56,7 @@ struct Node* searchByKey(char key[], char f1List[][100], int n)
     }
     return head;
 }
+
 void freeLink(struct Node *h)
 {
     struct Node *p=h, *del;
@@ -57,4 +65,364 @@ void freeLink(struct Node *h)
         p=p->next;
         free(del);
     }
+}
+
+void showMenu(){
+    printf("\n========== F1信息管理系统 ==========\n");
+    printf("1 - F1 关键词搜索\n");
+    printf("2 - F2 结果筛选\n");
+    printf("3 - F3 查看搜索历史\n");
+    printf("4 - F4 收藏结果\n");
+    printf("5 - F5 清除历史\n");
+    printf("0 - 退出系统\n");
+    printf("====================================\n");
+    printf("请选择功能：");
+}
+
+void showResultWithNumber(struct Node *head){
+    struct Node *p = head;
+    int num = 1;
+    if(p == NULL){
+        printf("暂无搜索结果\n");
+    }else{
+        while(p != NULL){
+            printf("%d. [%s] %s\n", num++, p->type, p->data);
+            p = p->next;
+        }
+    }
+}
+
+void showResult(struct Node *head){
+    struct Node *p = head;
+    int count = 0;
+    if(p == NULL){
+        printf("未找到相关 F1 信息\n");
+    }else{
+        while(p != NULL){
+            printf("[%s] %s\n", p->type, p->data);
+            p = p->next;
+            count++;
+        }
+        printf("共找到 %d 条结果\n", count);
+    }
+}
+
+int main(){
+    char f1List[][100] = {
+        "F1 红牛车队",     "车队",
+        "F1 法拉利车队",   "车队",
+        "F1 梅赛德斯车队", "车队",
+        "F1 赛车速度",     "赛事",
+        "F1 维斯塔潘",     "车手",
+        "F1 汉密尔顿",     "车手",
+        "F1 勒克莱尔",     "车手",
+        "F1 赛道记录",     "赛事"
+    };
+    int n = 8;
+    
+    #define MAX_HIST 30
+    char historyStr[MAX_HIST][100];
+    int histCount = 0;
+    
+    #define MAX_FAV 50
+    struct Favorite favorites[MAX_FAV];
+    int favCount = 0;
+    
+    struct Node *currentResult = NULL;
+    char currentKeyword[100] = "";
+    
+    int choice;
+    
+    printf("欢迎使用 F1 信息管理系统！\n");
+    
+    do{
+        showMenu();
+        scanf("%d", &choice);
+        getchar();
+        
+        switch(choice){
+            case 1:
+            {
+                char key[100];
+                printf("\n请输入 F1 搜索关键词：");
+                fgets(key, sizeof(key), stdin);
+                key[strcspn(key, "\n")] = '\0';
+                
+                int start = 0, end = strlen(key) - 1;
+                while(key[start] == ' ') start++;
+                while(end >= 0 && key[end] == ' ') end--;
+                if(start <= end){
+                    int j = 0;
+                    for(int i = start; i <= end; i++){
+                        key[j++] = key[i];
+                    }
+                    key[j] = '\0';
+                }else{
+                    key[0] = '\0';
+                }
+                
+                if(strlen(key) == 0){
+                    printf("关键词不能为空！\n");
+                    break;
+                }
+                
+                if(histCount > 0 && strcmp(historyStr[histCount-1], key) == 0){
+                    printf("与上次搜索关键词相同\n");
+                }
+                
+                if(histCount < MAX_HIST){
+                    strcpy(historyStr[histCount], key);
+                    histCount++;
+                }else{
+                    for(int i = 0; i < MAX_HIST - 1; i++){
+                        strcpy(historyStr[i], historyStr[i+1]);
+                    }
+                    strcpy(historyStr[MAX_HIST - 1], key);
+                }
+                
+                strcpy(currentKeyword, key);
+                
+                if(currentResult != NULL){
+                    freeLink(currentResult);
+                }
+                
+                currentResult = searchByKey(key, f1List, n);
+                
+                printf("\n===== F1搜索结果 =====\n");
+                printf("搜索关键词：【%s】\n", key);
+                showResult(currentResult);
+                break;
+            }
+            
+            case 2:
+            {
+                if(currentResult == NULL){
+                    printf("\n请先进行F1关键词搜索！\n");
+                    break;
+                }
+                
+                printf("\n===== F2 结果筛选：按类型筛选 =====\n");
+                printf("可选类型：\n");
+                printf("  1 - 车队\n");
+                printf("  2 - 车手\n");
+                printf("  3 - 赛事\n");
+                printf("请选择类型(1-3)：");
+                
+                int typeChoice;
+                scanf("%d", &typeChoice);
+                getchar();
+                
+                char filterType[20];
+                switch(typeChoice){
+                    case 1: strcpy(filterType, "车队"); break;
+                    case 2: strcpy(filterType, "车手"); break;
+                    case 3: strcpy(filterType, "赛事"); break;
+                    default:
+                        printf("无效的类型选择！\n");
+                        break;
+                }
+                
+                if(typeChoice >= 1 && typeChoice <= 3){
+                    struct Node *p = currentResult;
+                    struct Node *filterHead = NULL;
+                    struct Node *filterTail = NULL;
+                    int filterCount = 0;
+                    
+                    while(p != NULL){
+                        if(strcmp(p->type, filterType) == 0){
+                            struct Node *fNode = (struct Node*)malloc(sizeof(struct Node));
+                            strcpy(fNode->data, p->data);
+                            strcpy(fNode->type, p->type);
+                            fNode->next = NULL;
+                            
+                            if(filterHead == NULL){
+                                filterHead = fNode;
+                                filterTail = fNode;
+                            }else{
+                                filterTail->next = fNode;
+                                filterTail = fNode;
+                            }
+                            filterCount++;
+                        }
+                        p = p->next;
+                    }
+                    
+                    printf("\n===== F2筛选结果 [%s] =====\n", filterType);
+                    struct Node *f = filterHead;
+                    if(f == NULL){
+                        printf("该类型下无结果\n");
+                    }else{
+                        printf("共找到 %d 条结果：\n", filterCount);
+                        while(f != NULL){
+                            printf("[%s] %s\n", f->type, f->data);
+                            f = f->next;
+                        }
+                    }
+                    freeLink(filterHead);
+                }
+                break;
+            }
+            
+            case 3:
+            {
+                printf("\n======== F3 搜索历史记录 ========\n");
+                if(histCount == 0){
+                    printf("暂无搜索历史\n");
+                }else{
+                    printf("共 %d 条历史记录：\n", histCount);
+                    for(int i = 0; i < histCount; i++){
+                        printf("  %d. %s\n", i+1, historyStr[i]);
+                    }
+                    
+                    printf("\n======== 基于历史记录二次搜索 ========\n");
+                    int selectNo;
+                    printf("请输入要重新搜索的历史序号(1~%d，0取消)：", histCount);
+                    scanf("%d", &selectNo);
+                    getchar();
+                    
+                    if(selectNo >= 1 && selectNo <= histCount){
+                        char oldKey[100];
+                        strcpy(oldKey, historyStr[selectNo-1]);
+                        printf("复用历史关键词【%s】重新检索\n", oldKey);
+                        
+                        if(currentResult != NULL){
+                            freeLink(currentResult);
+                        }
+                        
+                        strcpy(currentKeyword, oldKey);
+                        currentResult = searchByKey(oldKey, f1List, n);
+                        
+                        printf("\n===== 二次检索结果 =====\n");
+                        showResult(currentResult);
+                    }else if(selectNo != 0){
+                        printf("输入序号无效！\n");
+                    }
+                }
+                break;
+            }
+            
+            case 4:
+            {
+                if(currentResult == NULL){
+                    printf("\n请先进行F1关键词搜索！\n");
+                    break;
+                }
+                
+                printf("\n===== F4 收藏结果 =====\n");
+                printf("当前搜索结果：\n");
+                showResultWithNumber(currentResult);
+                
+                if(currentResult == NULL){
+                    break;
+                }
+                
+                printf("\n请输入要收藏的序号（多个序号用空格隔开，如：1 3 5）：");
+                char input[200];
+                fgets(input, sizeof(input), stdin);
+                
+                input[strcspn(input, "\n")] = '\0';
+                
+                if(strlen(input) == 0){
+                    printf("未输入任何序号！\n");
+                    break;
+                }
+                
+                int indices[100];
+                int idxCount = 0;
+                char *token = strtok(input, " ");
+                while(token != NULL && idxCount < 100){
+                    int num = atoi(token);
+                    if(num > 0){
+                        indices[idxCount++] = num;
+                    }
+                    token = strtok(NULL, " ");
+                }
+                
+                if(idxCount == 0){
+                    printf("未输入有效序号！\n");
+                    break;
+                }
+                
+                struct Node *p = currentResult;
+                int pos = 1;
+                int collected = 0;
+                
+                while(p != NULL && pos <= 100){
+                    for(int i = 0; i < idxCount; i++){
+                        if(indices[i] == pos){
+                            if(favCount < MAX_FAV){
+                                strcpy(favorites[favCount].data, p->data);
+                                strcpy(favorites[favCount].type, p->type);
+                                favCount++;
+                                printf("已收藏：[%s] %s\n", p->type, p->data);
+                                collected++;
+                            }else{
+                                printf("收藏夹已满！\n");
+                            }
+                            break;
+                        }
+                    }
+                    p = p->next;
+                    pos++;
+                }
+                
+                if(collected == 0){
+                    printf("未收藏任何内容，请检查序号是否正确\n");
+                }else{
+                    printf("\n成功收藏 %d 项！当前共 %d 项\n", collected, favCount);
+                }
+                break;
+            }
+            
+            case 5:
+            {
+                printf("\n======== F5 清除历史 ========\n");
+                if(histCount == 0){
+                    printf("搜索历史已经为空！\n");
+                }else{
+                    printf("当前共有 %d 条历史记录\n", histCount);
+                    printf("前5条记录：\n");
+                    int showCount = histCount < 5 ? histCount : 5;
+                    for(int i = 0; i < showCount; i++){
+                        printf("  %d. %s\n", i+1, historyStr[i]);
+                    }
+                    if(histCount > 5){
+                        printf("  ... 还有 %d 条记录\n", histCount - 5);
+                    }
+                    
+                    printf("\n确定要清除所有搜索历史吗？(y/n)：");
+                    char confirm;
+                    scanf("%c", &confirm);
+                    getchar();
+                    if(confirm == 'y' || confirm == 'Y'){
+                        histCount = 0;
+                        printf("搜索历史已清除！\n");
+                    }else{
+                        printf("已取消清除操作\n");
+                    }
+                }
+                break;
+            }
+            
+            case 0:
+            {
+                printf("\n========== 退出系统 ==========\n");
+                printf("本次使用统计：\n");
+                printf("  - 搜索历史记录：%d 条\n", histCount);
+                printf("  - 收藏夹内容：%d 项\n", favCount);
+                printf("\n感谢使用，再见！\n");
+                break;
+            }
+            
+            default:
+                printf("\n无效选项，请输入 0-5 之间的数字！\n");
+        }
+        
+    }while(choice != 0);
+    
+    if(currentResult != NULL){
+        freeLink(currentResult);
+    }
+    
+    return 0;
 }
