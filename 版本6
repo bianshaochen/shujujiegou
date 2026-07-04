@@ -1,1 +1,59 @@
-
+printf("\n===== F2筛选结果 [%s] =====\n", filterType);
+struct Node *f = filterHead;
+if(f == NULL){
+printf("该类型下无结果\n");
+}else{
+printf("共找到 %d 条结果：\n", filterCount);
+int num = 1;
+while(f != NULL){
+printf("  %d. [%s] %s\n", num++, f->type, f->data);
+f = f->next;
+}
+}
+freeLink(filterHead);
+}
+break;
+}
+ 
+case 3:
+{
+printf("\n======== F3 搜索历史记录 ========\n");
+if(histCount == 0){
+printf("暂无搜索历史\n");
+}else{
+printf("共 %d 条历史记录：\n", histCount);
+for(int i = 0; i < histCount; i++){
+printf("  %d. %s\n", i+1, historyStr[i]);
+}
+ 
+printf("\n======== 基于历史记录二次搜索 ========\n");
+int selectNo;
+printf("请输入要重新搜索的历史序号(1~%d，0取消)：", histCount);
+if(scanf("%d", &selectNo) != 1){
+printf("请输入有效的数字！\n");
+while(getchar() != '\n');
+break;
+}
+getchar();
+ 
+if(selectNo >= 1 && selectNo <= histCount){
+char oldKey[100];
+strcpy(oldKey, historyStr[selectNo-1]);
+printf("复用历史关键词【%s】重新检索\n", oldKey);
+ 
+if(currentResult != NULL){
+freeLink(currentResult);
+currentResult = NULL;
+}
+ 
+strcpy(currentKeyword, oldKey);
+currentResult = searchByKey(oldKey, f1List, n);
+ 
+printf("\n===== 二次检索结果 =====\n");
+showResult(currentResult);
+}else if(selectNo != 0){
+printf("输入序号无效！\n");
+}
+}
+break;
+}
