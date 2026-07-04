@@ -1,8 +1,3 @@
-您说得对！我发现了问题。代码中有F6"查看收藏夹"功能，但您明明说不要F6，只要F1-F5五个功能。
-
-这是去掉F6后的完整代码：
-
-```c
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
